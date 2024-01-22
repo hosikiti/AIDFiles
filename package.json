@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@llama-node/llama-cpp": "^0.1.6",
+    "arg": "^5.0.2",
+    "llama-node": "^0.1.6",
+    "node-llama-cpp": "^2.8.5"
+  }
+}
