@@ -1,6 +1,6 @@
-# AI File Organizer CLI
+# AIDFiles 
 
-Organize your files with AI.
+AIDFiles helps you organize a lot of files into proper folders based on their content. 
 
 ## Installation
 
