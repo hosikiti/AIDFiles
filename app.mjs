@@ -2,7 +2,9 @@ import {fileURLToPath} from "url";
 import path from "path";
 import { getFilenames } from "./file_util.mjs";
 import arg from "arg";
-import { LLM } from "./llm.mjs";
+import { LLM, exportFunction } from "./llm.mjs";
+import { moveFileSync } from 'move-file';
+import fs from 'fs';
 
 const args = arg({
     '--dir': String,
@@ -29,23 +31,47 @@ const functionsInPrompt = JSON.stringify({
     ]
 }, null, 4);
 
+const inputDir = args['--dir']
+
+if( !inputDir ) {
+    console.log("Please specify the directory to move files from")
+    process.exit(1)
+}
+
 const filenames = getFilenames(args['--dir']);
 
 for( const filename of filenames) {
-    const q1 = `Can you move this file to the proper folder?: ${filename}`;
-    console.log(q1)
-
-    const prompt = `<FUNCTIONS>${functionsInPrompt}</FUNCTIONS>\n\n[INST] ${q1}[/INST]`
-
-    const a1 = await llm.prompt(prompt);
-
-    // extract function from answer
-    const funcJson = a1.replaceAll("\n", "").match(/<FUNCTIONS>(.*)<\/FUNCTIONS>/)[1];
     try {
-        const func = JSON.parse(funcJson);
-        console.log(`${JSON.stringify(func)}`)
-    } catch (e) {
-        console.log(`Error parsing function: ${e}, answer was: ${a1}`)
+        if( filename.startsWith(".") ) {
+            continue
+        }
+
+        // call the model
+        const inst = `Can you move this file into a folder with a proper name?: ${filename}`;
+        const prompt = `<FUNCTIONS>${functionsInPrompt}</FUNCTIONS>\n\n[INST] ${inst}[/INST]`
+
+        const a1 = await llm.prompt(prompt);
+
+        // extract the function
+        const func = exportFunction(a1);
+        if( !func ){
+            console.log("No function found, skip")
+            continue
+        }
+
+        // call the function
+        const fromPath = `${inputDir}/${func.arguments.fromPath}`
+        const outDir = `${inputDir}/${func.arguments.toPath}`
+        if( !fs.existsSync(outDir) ) {
+            fs.mkdirSync(outDir, { recursive: true });
+        }
+        const toPath = `${outDir}/${func.arguments.fromPath}`
+        
+        console.log(`Moving ${fromPath} to ${toPath}`)
+        fs.renameSync(fromPath, toPath)
+    } catch(e) {
+        console.log(`Error: ${e}, skip`)
+        continue
     }
 }
 
