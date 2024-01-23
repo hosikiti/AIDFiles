@@ -18,6 +18,8 @@ export const exportFunction = (answer) => {
     const FUNC_BEGIN = "<FUNCTIONS>";
     const FUNC_END = "</FUNCTIONS>";
 
+    // clean up the LLM's answer to properly extract a function definition
+    // I sometimes faced that the model returns FUNCTIONs instead of FUNCTIONS, so had to convert it manually.
     answer = answer.trim().replace(/\n/g, "").replace(new RegExp(FUNC_BEGIN, "ig"), FUNC_BEGIN).replace(new RegExp(FUNC_END, "ig"), FUNC_END);
 
     const funcStart = answer.indexOf(FUNC_BEGIN);
