@@ -1,36 +1,51 @@
 import {fileURLToPath} from "url";
 import path from "path";
-import {LlamaModel, LlamaContext, LlamaChatSession} from "node-llama-cpp";
 import { getFilenames } from "./file_util.mjs";
 import arg from "arg";
+import { LLM } from "./llm.mjs";
 
 const args = arg({
     '--dir': String,
 });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const modelPath = path.join(__dirname, "models", "llama-2-7b-function-calling.Q3_K_M.gguf")
+const llm = new LLM(modelPath);
 
-const model = new LlamaModel({
-    // modelPath: path.join(__dirname, "models", "openhermes-2.5-mistral-7b.Q4_K_M.gguf")
-    modelPath: path.join(__dirname, "models", "openhermes-2.5-mistral-7b.Q5_K_M.gguf")
-});
-const context = new LlamaContext({model});
-const session = new LlamaChatSession({context});
+const functionsInPrompt = JSON.stringify({
+    "function": "moveFile",
+    "description": "Move file to another folder",
+    "arguments": [
+        {
+            "name": "fromPath",
+            "type": "string",
+            "description": "File name to move"    
+        },
+        {
+            "name": "toPath",
+            "type": "string",
+            "description": "Folder name to store this file in"
+        }
+    ]
+}, null, 4);
 
 const filenames = getFilenames(args['--dir']);
 
-while( filenames.length > 0 ) {
-    const list =[]
-    for (let i = 0; i < 10; i++) {
-        const filename = filenames.shift();
-        if (filename) {
-            list.push(filename);
-        }
-    }
-    const filenameStr = list.join(", ");
-    const q1 = `Group those files into folders and print as JSON: ${filenameStr}\n- Folder name should not include 'folder'\n - JSON format must be like this: {"foldername": ["filename1", "filename2" ... ]}\n`;
+for( const filename of filenames) {
+    const q1 = `Can you move this file to the proper folder?: ${filename}`;
     console.log(q1)
-    const a1 = await session.prompt(q1);
-    console.log("AI: " + a1);
+
+    const prompt = `<FUNCTIONS>${functionsInPrompt}</FUNCTIONS>\n\n[INST] ${q1}[/INST]`
+
+    const a1 = await llm.prompt(prompt);
+
+    // extract function from answer
+    const funcJson = a1.replaceAll("\n", "").match(/<FUNCTIONS>(.*)<\/FUNCTIONS>/)[1];
+    try {
+        const func = JSON.parse(funcJson);
+        console.log(`${JSON.stringify(func)}`)
+    } catch (e) {
+        console.log(`Error parsing function: ${e}, answer was: ${a1}`)
+    }
 }
 

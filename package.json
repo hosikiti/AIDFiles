@@ -4,5 +4,8 @@
     "arg": "^5.0.2",
     "llama-node": "^0.1.6",
     "node-llama-cpp": "^2.8.5"
+  },
+  "scripts": {
+    "start": "node app.mjs"
   }
 }
