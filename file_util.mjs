@@ -6,13 +6,11 @@ export const getFilenames = (path) => {
     for (const filename of filenames) {
         const filepath = path + "/" + filename;
         const stat = fs.statSync(filepath);
-        if (stat.isDirectory()) {
-            result.push(...getFilenames(filepath));
-        } else {
-            result.push(filepath);
+        if (!stat.isDirectory()) {
+            result.push(filename);
         }
     }
 
-    return [...filenames];
+    return result
 }
 

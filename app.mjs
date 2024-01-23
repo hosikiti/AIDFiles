@@ -3,7 +3,6 @@ import path from "path";
 import { getFilenames } from "./file_util.mjs";
 import arg from "arg";
 import { LLM, exportFunction } from "./llm.mjs";
-import { moveFileSync } from 'move-file';
 import fs from 'fs';
 
 const args = arg({
@@ -45,6 +44,8 @@ for( const filename of filenames) {
         if( filename.startsWith(".") ) {
             continue
         }
+
+        console.log(`Processing ${filename}`)
 
         // call the model
         const inst = `Can you move this file into a folder with a proper name?: ${filename}`;

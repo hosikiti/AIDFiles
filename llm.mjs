@@ -10,6 +10,7 @@ export class LLM {
     }
 
     async prompt(prompt) {
+        await this.session.init()
         return await this.session.prompt(prompt);
     }
 }
