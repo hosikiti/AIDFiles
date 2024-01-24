@@ -1,17 +1,24 @@
 import {LlamaModel, LlamaContext, LlamaChatSession} from "node-llama-cpp";
 
 export class LLM {
-    constructor(modelPath) {
+    constructor(modelPath, functions) {
         const model = new LlamaModel({
             modelPath: modelPath
         });
-        const context = new LlamaContext({model});
-        this.session = new LlamaChatSession({context});
+        const context = new LlamaContext({
+            model,
+            contextSize: Math.min(4096, model.trainContextSize)
+        });
+        const session = new LlamaChatSession({
+            contextSequence: context.getSequence()
+        });
+
+        this.session = session;
+        this.functions = functions;
     }
 
     async prompt(prompt) {
-        await this.session.init()
-        return await this.session.prompt(prompt);
+        return await this.session.prompt(prompt, { functions: this.functions });
     }
 }
 

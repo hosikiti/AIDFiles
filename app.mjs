@@ -4,14 +4,14 @@ import { getFilenames } from "./file_util.mjs";
 import arg from "arg";
 import { LLM, exportFunction } from "./llm.mjs";
 import fs from 'fs';
+import { defineChatSessionFunction } from "node-llama-cpp";
 
 const args = arg({
     '--dir': String,
 });
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const modelPath = path.join(__dirname, "models", "llama-2-7b-function-calling.Q3_K_M.gguf")
-const llm = new LLM(modelPath);
+const modelPath = path.join(__dirname, "models", "functionary-small-v2.2.q4_0.gguf")
 
 const functionsInPrompt = JSON.stringify({
     "function": "moveFile",
@@ -29,6 +29,31 @@ const functionsInPrompt = JSON.stringify({
         }
     ]
 }, null, 4);
+
+const functionDefinitions = {
+    moveFile: defineChatSessionFunction({
+        description: "Move file to another folder",
+        params: {
+            type: "object",
+            properties: {
+                fromPath: {
+                    type: "string",
+                    description: "File name to move"
+                },
+                toPath: {
+                    type: "string",
+                    description: "Folder name to store this file in"
+                }
+            }
+        },
+        handler(params) {
+            console.log(`YEAH!! Moving ${params.fromPath} to ${params.toPath}`)
+            // return fs.renameSync(params.fromPath, params.toPath);
+        }
+    })
+};
+
+const llm = new LLM(modelPath, functionDefinitions);
 
 const inputDir = args['--dir']
 
@@ -48,10 +73,11 @@ for( const filename of filenames) {
         console.log(`Processing ${filename}`)
 
         // call the model
-        const inst = `Can you move this file into a folder with a proper name?: ${filename}`;
-        const prompt = `<FUNCTIONS>${functionsInPrompt}</FUNCTIONS>\n\n[INST] ${inst}[/INST]`
+        const inst = `Move this ${filename} into an appropriate folders based on common sense`;
 
-        const a1 = await llm.prompt(prompt);
+        const a1 = await llm.prompt(inst);
+
+        console.log(`Answer: ${JSON.stringify(a1)}`)
 
         // extract the function
         const func = exportFunction(a1);
@@ -69,7 +95,7 @@ for( const filename of filenames) {
         const toPath = `${outDir}/${func.arguments.fromPath}`
         
         console.log(`Moving ${fromPath} to ${toPath}`)
-        fs.renameSync(fromPath, toPath)
+        //fs.renameSync(fromPath, toPath)
     } catch(e) {
         console.log(`Error: ${e}, skip`)
         continue
