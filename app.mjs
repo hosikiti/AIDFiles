@@ -13,23 +13,6 @@ const args = arg({
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const modelPath = path.join(__dirname, "models", "functionary-small-v2.2.q4_0.gguf")
 
-const functionsInPrompt = JSON.stringify({
-    "function": "moveFile",
-    "description": "Move file to another folder",
-    "arguments": [
-        {
-            "name": "fromPath",
-            "type": "string",
-            "description": "File name to move"    
-        },
-        {
-            "name": "toPath",
-            "type": "string",
-            "description": "Folder name to store this file in"
-        }
-    ]
-}, null, 4);
-
 const functionDefinitions = {
     moveFile: defineChatSessionFunction({
         description: "Move file to another folder",
@@ -80,7 +63,7 @@ for( const filename of filenames) {
         console.log(`Answer: ${JSON.stringify(a1)}`)
 
         // extract the function
-        const func = exportFunction(a1);
+        const func = extractFunction(a1);
         if( !func ){
             console.log("No function found, skip")
             continue

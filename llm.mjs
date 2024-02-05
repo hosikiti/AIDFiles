@@ -22,7 +22,7 @@ export class LLM {
     }
 }
 
-export const exportFunction = (answer) => {
+export const extractFunction = (answer) => {
     const FUNC_BEGIN = "<FUNCTIONS>";
     const FUNC_END = "</FUNCTIONS>";
 

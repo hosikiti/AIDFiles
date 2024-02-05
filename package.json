@@ -6,6 +6,26 @@
     "node-llama-cpp": "^3.0.0-beta.4"
   },
   "scripts": {
-    "start": "node app.mjs"
+    "start": "node app.mjs",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "moduleFileExtensions": ["mjs", "js", "jsx", "ts", "tsx", "json", "node"],
+    "testMatch": [
+      "**/?(*.)test.?js"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/cypress/"
+    ],
+    "transform": {
+      "^.+\\.m?js$": "babel-jest"
+    },
+    "transformIgnorePatterns": [
+      "\\.pnp\\.[^\\/]+$"
+    ]
   }
 }
