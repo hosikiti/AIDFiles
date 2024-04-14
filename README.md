@@ -1,6 +1,6 @@
 # AIDFiles 
 
-AIDFiles helps you organize a lot of files into proper folders based on their content. 
+AIDFiles organizes files into folders with appropriate names!
 
 ## Installation
 
